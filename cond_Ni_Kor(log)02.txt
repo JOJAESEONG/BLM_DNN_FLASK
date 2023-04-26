@@ -1,0 +1,92 @@
+# In[] model load
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class MLPModel(nn.Module): # 원래조건 : (5,20) (20,15), (15,10), (10,1)
+    def __init__(self):
+        super(MLPModel, self).__init__()
+        self.linear1 = nn.Linear(4,32)
+        self.sigmoid1 = nn.ReLU()
+        self.linear2 = nn.Linear(32,24)
+        self.sigmoid2 = nn.ReLU()
+        self.linear3 = nn.Linear(24,16)
+        self.relu3 = nn.ReLU()
+        self.linear4 = nn.Linear(16,1)
+
+    def forward(self, x):
+    # 인스턴스(샘플) x가 인풋으로 들어왔을 때 모델이 예측하는 y값을 리턴합니다.
+        x = self.linear1(x)
+        x = self.sigmoid1(x)
+        x = self.linear2(x)
+        x = self.sigmoid2(x)
+        x = self.linear3(x)
+        x = self.relu3(x)
+        x = self.linear4(x)
+        return x
+    
+model = MLPModel()
+model.load_state_dict(torch.load('C:\\Users\\juvox\\model\\cond_Ni_Kor(log)02.pth'))
+#model(train_input_x)
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------
+
+
+# In[] # kr test set 764개 그래프
+kr_test_data= pd.read_csv("kr_test(log)_c.csv")
+
+
+
+P_Ak= -1.954980 +kr_test_data['pH'] * 0.161542 + np.log10(kr_test_data['DOC']) * 0.119819 + np.log10(kr_test_data['Cond'])  * 0.988312   
+P_Alkalinity = np.power(10, P_Ak)
+test_data['P_Alkalinity'] = P_Alkalinity 
+
+P_Ak=
+(Intercept)                        -1.954980   
+kr_test_data['pH']                                 x    0.161542   
+log10(kr_test_data['DOC'])    x    0.119819   
+log10(kr_test_data['Cond'])   x    0.988312   
+
+P_Alkalinity = np.power(10, P_Ak)
+P_Alkalinity를 test_data에 합치기
+
+
+
+
+
+test_data = test_data[["pH", "Cond", "DOC", "P_Alkalinity", "EU_Chronic HC5"]]
+test_data['Cond'] = np.log10(kr_test_data['Cond'])
+test_data['DOC'] = np.log10(kr_test_data['DOC'])
+test_data['P_Alkalinity'] = np.log10(kr_test_data['P_Alkalinity'])
+
+test_X, test_y = test_data.iloc[:,:4], test_data.iloc[:,4]
+
+test_input_x = torch.Tensor(test_X.values)
+test_true_y = torch.Tensor(test_y.values)
+
+test_reshape_NN = torch.reshape(model(test_input_x), (-1,))
+
+a = test_reshape_NN.detach().numpy()
+a = pd.DataFrame(a)
+
+
+b = np.power(10, a)
+b.to_csv("test_reshape_NN(log).csv")
+#a.to_csv("test_reshape_NN(log).csv")
+
+
+

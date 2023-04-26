@@ -1,0 +1,52 @@
+# In[] model load
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class MLPModel(nn.Module): # 원래조건 : (5,20) (20,15), (15,10), (10,1)
+    def __init__(self): 
+        super(MLPModel, self).__init__()
+        self.linear1 = nn.Linear(6,24)
+        self.sigmoid1 = nn.Sigmoid()
+        self.linear2 = nn.Linear(24,18)
+        self.sigmoid2 = nn.Sigmoid()
+        self.linear3 = nn.Linear(18,12)
+        self.relu3 = nn.ReLU()
+        self.linear4 = nn.Linear(12,1)
+
+    def forward(self, x):
+    # 인스턴스(샘플) x가 인풋으로 들어왔을 때 모델이 예측하는 y값을 리턴합니다.
+        x = self.linear1(x)
+        x = self.sigmoid1(x)
+        x = self.linear2(x)
+        x = self.sigmoid2(x)
+        x = self.linear3(x)
+        x = self.relu3(x)
+        x = self.linear4(x)
+        return x
+    
+model = MLPModel()
+model.load_state_dict(torch.load('C:\\Users\\juvox\\model\\Zn_full-para_00.pth'))
+#model(train_input_x)
+
+---------------------------------------------------------------------------------------------------------------
+
+# In[] # kr test set 764개 그래프
+test_data = pd.read_csv("Cu_Simul_DB(kor).csv")
+test_data = test_data[["pH", "Na", "Mg", "Ca", "DOC", "Alkalinity","Cu_HC5" ]] 
+
+test_X, test_y = test_data.iloc[:,:6], test_data.iloc[:,6]
+
+test_input_x = torch.Tensor(test_X.values)
+
+
+test_reshape_NN = torch.reshape(model(test_input_x), (-1,))
+
+a = test_reshape_NN.detach().numpy()
+a = pd.DataFrame(a)
+a.to_csv("test(log).csv")
